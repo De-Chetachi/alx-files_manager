@@ -1,10 +1,3 @@
-import { createClient } from 'redis';
+import dbClient from './utils/db';
 
-const client = await createClient()
-  .on('error', err => console.log('Redis Client Error', err))
-  .connect();
-
-await client.set('key', 'value');
-const value = await client.get('key');
-await client.disconnect();
-
+console.log(dbClient);
