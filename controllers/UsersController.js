@@ -7,17 +7,17 @@ class UsersController {
     static async postNew(req, res) {
         const email = req.body.email;
         if (!email) {
-            res.status(400).json({ error: 'Missing email' });
+            return res.status(400).json({ error: 'Missing email' });
         }
         
         const pass = req.body.password;
         if (!pass) {
-            res.status(400).json({ error: 'Missing password' });
+            return res.status(400).json({ error: 'Missing password' });
         }
 
         const userDeh = await dbClient.dbClient.collection('users').findOne({email: email});
         if (userDeh) {
-            res.status(400).json({error: 'Already exist'});
+            return res.status(400).json({error: 'Already exist'});
         }
 
         const password = sha1(pass);
