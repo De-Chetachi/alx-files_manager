@@ -62,7 +62,7 @@ class FilesController {
         await mkdir(rootFolder, {recursive: true});
         const filename = uuidv4();
         const filePath = join(rootFolder, filename);
-        await file.writeFile(filePath, Buffer.from(data, 'base64'));
+        await file.writeFile(join(rootFolder, filename), Buffer.from(data, 'base64'));
         const newFile = await dbClient.dbClient.collection('files').insertOne({ localPath: filePath, ...fileData });
 
         fileData.parentId = parentId === '0' ? '0' : ObjectId(parentId);  
