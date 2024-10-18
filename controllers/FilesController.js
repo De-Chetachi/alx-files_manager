@@ -3,6 +3,11 @@ import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 import { v4 as uuidv4 } from 'uuid';
 
+const { mkdir } = require('node:fs/promises');
+const { join }  = require('node:path');
+const  { writeFile } = require('node:fs/promises');
+
+
 class FilesController {
     static async postUpload(req, res) {
         const token = req.header('X-Token');
@@ -54,15 +59,10 @@ class FilesController {
         }
 
         const rootFolder = process.env.FOLDER_PATH || '/tmp/files_manager';
-        const filename = uuidv4();
-        const { mkdir } = require('node:fs/promises');
-        const { join }  = require('node:path');
-        const  { open } = require('node:fs/promises');
         await mkdir(rootFolder, {recursive: true});
+        const filename = uuidv4();
         const filePath = join(rootFolder, filename);
-        const file = await open(filePath);
-        await file.writeFile(Buffer.from(data, 'base64'));
-        file.close();
+        await file.writeFile(filePath, Buffer.from(data, 'base64'));
         const newFile = await dbClient.dbClient.collection('files').insertOne({ localPath: filePath, ...fileData });
 
         fileData.parentId = parentId === '0' ? '0' : ObjectId(parentId);  
