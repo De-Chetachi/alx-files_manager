@@ -92,9 +92,34 @@ class FilesController {
         if (!token) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        const userId = await redisClient.get('auth_' + token);
+        const userIdSt = await redisClient.get('auth_' + token);
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
 
-        await dbClient.dbClient.collection('files').find()
+        const parentId = req.query.parentId? ObjectId(req.query.parentId) : '0';
+        const userId = ObjectId(userIdSt);
+
+        const filesTotal = await dbClient.dbClient.collection('files').countDocuments({ userId, parentId });
+        if (filesTotal === '0') {
+            return res.json([]);
+        }
+
+        const skip = (parseInt(req.query.page, 10) || 0) * 20;
+        
+        const files = await dbClient.dbClient.collection('files').aggregate([
+            { $match: { userId, parentId } },
+            { $skip: skip },
+            { $limit: 20 },
+        ]).toArray();
+
+        const alterResult = files.map((file) => ({
+            ...file,
+            id: file._id,
+            _id: undefined,
+        }));
+       
+        return res.json(alterResult);
     }
 }
 
